@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { User } from 'src/user/entities/user.entity';
+import { In, Repository } from 'typeorm';
 import { CreateSurveyDto } from './dto/create-survey.dto';
 import { UpdateSurveyDto } from './dto/update-survey.dto';
-import { Survey } from './entities/survey.entity';
 import { Problem } from './entities/problem.entity';
+import { Survey } from './entities/survey.entity';
 
 @Injectable()
 export class SurveyService {
@@ -30,13 +31,15 @@ export class SurveyService {
     return this.surveyRepository.save(survey);
   }
 
-  findAll() {
-    return this.surveyRepository.find();
+  findAll(user: User) {
+    return this.surveyRepository.find({
+      where: { participants: In([user.email]) },
+    });
   }
 
-  findOne(id: number) {
+  findOne(user: User, id: number) {
     return this.surveyRepository.findOne({
-      where: { id },
+      where: { id, participants: In([user.email]) },
       relations: ['problems'],
     });
   }

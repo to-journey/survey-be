@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { SurveyService } from './survey.service';
 import { CreateSurveyDto } from './dto/create-survey.dto';
 import { UpdateSurveyDto } from './dto/update-survey.dto';
 import { Role } from 'src/user/enums/role.enum';
 import { Roles, RolesGuard } from 'src/guards';
+import { RequestWithUser } from 'src/types';
 
 @Controller('survey')
 export class SurveyController {
@@ -17,17 +18,15 @@ export class SurveyController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
   @Get()
-  findAll() {
-    return this.surveyService.findAll();
+  findAll(@Req() request: RequestWithUser) {
+    return this.surveyService.findAll(request.user);
   }
 
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.surveyService.findOne(+id);
+  findOne(@Req() request: RequestWithUser, @Param('id') id: string) {
+    return this.surveyService.findOne(request.user, +id);
   }
 
   @UseGuards(RolesGuard)
