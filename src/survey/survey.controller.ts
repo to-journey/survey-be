@@ -1,10 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
-import { SurveyService } from './survey.service';
-import { CreateSurveyDto } from './dto/create-survey.dto';
-import { UpdateSurveyDto } from './dto/update-survey.dto';
-import { Role } from 'src/user/enums/role.enum';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { Roles, RolesGuard } from 'src/guards';
 import { RequestWithUser } from 'src/types';
+import { Role } from 'src/user/enums/role.enum';
+import { CreateSurveyDto } from './dto/create-survey.dto';
+import { UpdateSurveyDto } from './dto/update-survey.dto';
+import { SurveyService } from './survey.service';
+import { AnswerDto } from './dto/answer.dto';
 
 @Controller('survey')
 export class SurveyController {
@@ -41,5 +52,22 @@ export class SurveyController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.surveyService.remove(+id);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(Role.USER)
+  @Post(':id/problem/:problemId/submit')
+  submitProblem(
+    @Req() request: RequestWithUser,
+    @Param('id') id: string,
+    @Param('problemId') problemId: string,
+    @Body() answerDto: AnswerDto,
+  ) {
+    return this.surveyService.submitProblem(
+      request.user,
+      +id,
+      +problemId,
+      answerDto.answer,
+    );
   }
 }

@@ -7,6 +7,7 @@ import { CreateSurveyDto } from './dto/create-survey.dto';
 import { UpdateSurveyDto } from './dto/update-survey.dto';
 import { Problem } from './entities/problem.entity';
 import { Survey } from './entities/survey.entity';
+import { Answer } from './entities/answer.entity';
 
 @Injectable()
 export class SurveyService {
@@ -16,6 +17,9 @@ export class SurveyService {
 
     @InjectRepository(Problem)
     private problemRepository: Repository<Problem>,
+
+    @InjectRepository(Answer)
+    private answerRepository: Repository<Answer>,
   ) {}
 
   async create(createSurveyDto: CreateSurveyDto) {
@@ -34,13 +38,19 @@ export class SurveyService {
 
   findAll(user: User) {
     return this.surveyRepository.find({
-      where: user.role == Role.ADMIN ? undefined : { participants: In([user.email]) },
+      where:
+        user.role == Role.ADMIN
+          ? undefined
+          : { participants: In([user.email]) },
     });
   }
 
   findOne(user: User, id: number) {
     return this.surveyRepository.findOne({
-      where: user.role == Role.ADMIN ? { id } : { id, participants: In([user.email]) },
+      where:
+        user.role == Role.ADMIN
+          ? { id }
+          : { id, participants: In([user.email]) },
       relations: ['problems'],
     });
   }
@@ -52,5 +62,25 @@ export class SurveyService {
   async remove(id: number) {
     await this.problemRepository.delete({ survey: { id } });
     return this.surveyRepository.delete(id);
+  }
+
+  async submitProblem(
+    user: User,
+    surveyId: number,
+    problemId: number,
+    answer: string,
+  ) {
+    const existingAnswer = await this.answerRepository.findOne({
+      where: { survey: { id: surveyId }, problem: { id: problemId }, user: { id: user.id } },
+    });
+    if (existingAnswer) {
+      return this.answerRepository.update(existingAnswer.id, { answer });
+    }
+    return this.answerRepository.save({
+      survey: { id: surveyId },
+      problem: { id: problemId },
+      user: { id: user.id },
+      answer,
+    });
   }
 }
