@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
+import { Role } from 'src/user/enums/role.enum';
 import { In, Repository } from 'typeorm';
 import { CreateSurveyDto } from './dto/create-survey.dto';
 import { UpdateSurveyDto } from './dto/update-survey.dto';
@@ -33,13 +34,13 @@ export class SurveyService {
 
   findAll(user: User) {
     return this.surveyRepository.find({
-      where: { participants: In([user.email]) },
+      where: user.role == Role.ADMIN ? undefined : { participants: In([user.email]) },
     });
   }
 
   findOne(user: User, id: number) {
     return this.surveyRepository.findOne({
-      where: { id, participants: In([user.email]) },
+      where: user.role == Role.ADMIN ? { id } : { id, participants: In([user.email]) },
       relations: ['problems'],
     });
   }
