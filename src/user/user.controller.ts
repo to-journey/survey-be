@@ -13,6 +13,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Role } from './enums/role.enum';
 import { UserService } from './user.service';
+import { ImportUserDto } from './dto/import-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -51,5 +52,12 @@ export class UserController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  @Post('import')
+  import(@Body() importUserDto: ImportUserDto) {
+    return this.userService.import(importUserDto);
   }
 }

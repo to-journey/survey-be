@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { ImportUserDto } from './dto/import-user.dto';
+import { hash } from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -38,5 +40,16 @@ export class UserService {
 
   remove(id: number) {
     return this.userRepository.delete(id);
+  }
+
+  async import(importUserDto: ImportUserDto) {
+    return this.userRepository.save(
+      await Promise.all(
+        importUserDto.map(async (user) => ({
+          ...user,
+          password: await hash('12345678', 10),
+        })),
+      ),
+    );
   }
 }
