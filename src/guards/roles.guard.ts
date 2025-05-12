@@ -9,12 +9,14 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { ROLES_KEY } from './roles.decorator';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
     constructor(
         private reflector: Reflector,
         private jwtService: JwtService,
+        private userService: UserService,
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -29,7 +31,8 @@ export class RolesGuard implements CanActivate {
             const payload = await this.jwtService.verifyAsync(token, {
                 secret: process.env.SECRET,
             });
-            request.user = payload;
+            const user = await this.userService.findOne(payload.id);
+            request.user = user;
         } catch (err) {
             console.log(err);
             throw new UnauthorizedException('ログインしていません。ログインしてください。');
