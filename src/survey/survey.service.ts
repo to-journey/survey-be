@@ -5,13 +5,16 @@ import { Role } from 'src/user/enums/role.enum';
 import { In, Repository } from 'typeorm';
 import { CreateSurveyDto } from './dto/create-survey.dto';
 import { UpdateSurveyDto } from './dto/update-survey.dto';
+import { Answer } from './entities/answer.entity';
 import { Problem } from './entities/problem.entity';
 import { Survey } from './entities/survey.entity';
-import { Answer } from './entities/answer.entity';
 
 @Injectable()
 export class SurveyService {
   constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    
     @InjectRepository(Survey)
     private surveyRepository: Repository<Survey>,
 
@@ -64,6 +67,18 @@ export class SurveyService {
     return this.surveyRepository.delete(id);
   }
 
+  async findSurveyParticipation(id: number) {
+    const answers = await this.answerRepository.find({
+      where: { survey: { id } },
+      relations: ['user'],
+    });
+    const userIds = [...new Set(answers.map((answer) => answer.user.id))];
+    const users = await this.userRepository.find({
+      where: { id: In(userIds) },
+    });
+    return users;
+  }
+
   async submitProblem(
     user: User,
     surveyId: number,
@@ -71,7 +86,11 @@ export class SurveyService {
     answer: string,
   ) {
     const existingAnswer = await this.answerRepository.findOne({
-      where: { survey: { id: surveyId }, problem: { id: problemId }, user: { id: user.id } },
+      where: {
+        survey: { id: surveyId },
+        problem: { id: problemId },
+        user: { id: user.id },
+      },
     });
     if (existingAnswer) {
       return this.answerRepository.update(existingAnswer.id, { answer });
@@ -81,6 +100,13 @@ export class SurveyService {
       problem: { id: problemId },
       user: { id: user.id },
       answer,
+    });
+  }
+
+  async findSurveyAnswer(id: number, userId: number) {
+    return this.answerRepository.find({
+      where: { survey: { id }, user: { id: userId } },
+      relations: ['problem'],
     });
   }
 }

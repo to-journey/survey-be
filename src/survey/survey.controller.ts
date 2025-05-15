@@ -55,7 +55,14 @@ export class SurveyController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles(Role.USER)
+  @Roles(Role.USER, Role.ADMIN)
+  @Get(':id/user')
+  findSurveyParticipation(@Param('id') id: string) {
+    return this.surveyService.findSurveyParticipation(+id);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(Role.USER, Role.ADMIN)
   @Post(':id/problem/:problemId/submit')
   submitProblem(
     @Req() request: RequestWithUser,
@@ -69,5 +76,12 @@ export class SurveyController {
       +problemId,
       answerDto.answer,
     );
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(Role.USER, Role.ADMIN)
+  @Get(':id/user/:userId/answer')
+  findSurveyAnswer(@Param('id') id: string, @Param('userId') userId: string) {
+    return this.surveyService.findSurveyAnswer(+id, +userId);
   }
 }
