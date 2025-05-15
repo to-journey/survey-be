@@ -24,6 +24,9 @@ export class User {
   @Column()
   password: string;
 
+  @Column({ default: 0 })
+  point: number;
+
   @Column({ type: 'jsonb', default: [] })
   attributions: {
     key: string;
@@ -32,6 +35,9 @@ export class User {
 
   @Column({ type: 'enum', enum: Role, default: Role.USER })
   role: Role;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  lastLogin: Date;
 
   @CreateDateColumn()
   createdAt: Date;

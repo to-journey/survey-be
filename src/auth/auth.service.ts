@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { compare, hash } from 'bcrypt';
+import { SettingService } from 'src/setting/setting.service';
 import { UserService } from 'src/user/user.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -8,11 +9,17 @@ import { RegisterDto } from './dto/register.dto';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly userService: UserService,
     private jwtService: JwtService,
+    private readonly userService: UserService,
+    private settingService: SettingService,
   ) {}
 
   async login(loginDto: LoginDto) {
+    const loginPayload = this.jwtService.verify(loginDto.token);
+    if (loginPayload.type !== 'login-token') {
+      throw new UnauthorizedException('Invalid token');
+    }
+
     const user = await this.userService.findOneByEmail(loginDto.email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -21,6 +28,20 @@ export class AuthService {
     const isPasswordValid = await compare(loginDto.password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (user.lastLogin) {
+      const lastLogin = new Date(user.lastLogin);
+      const now = new Date();
+      const diff = now.getTime() - lastLogin.getTime();
+      const diffDays = diff / (1000 * 60 * 60 * 24);
+      if (diffDays > 1) {
+        const rewardPoints = await this.settingService.findOne('reward_points');
+        await this.userService.update(user.id, {
+          point: user.point + parseInt(rewardPoints.value),
+          lastLogin: new Date(),
+        });
+      }
     }
 
     const payload = { id: user.id, email: user.email, role: user.role };
@@ -41,5 +62,13 @@ export class AuthService {
 
   async profile(id: number) {
     return this.userService.findOne(id);
+  }
+
+  async loginToken() {
+    const payload = {
+      type: 'login-token',
+    };
+    const token = this.jwtService.sign(payload, { expiresIn: '1h' });
+    return { token };
   }
 }

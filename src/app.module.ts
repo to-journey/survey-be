@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserAttributionsModule } from './user-attributions/user-attributions.module';
 import { SurveyModule } from './survey/survey.module';
 import { SeedModule } from './seed/seed.module';
+import { SettingModule } from './setting/setting.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { SeedModule } from './seed/seed.module';
     AuthModule,
     SurveyModule,
     SeedModule,
+    SettingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

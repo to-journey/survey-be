@@ -1,8 +1,6 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
-import { Roles } from 'src/guards/roles.decorator';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { RequestWithUser } from 'src/types';
-import { Role } from 'src/user/enums/role.enum';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -25,5 +23,10 @@ export class AuthController {
   @Get('profile')
   profile(@Req() req: RequestWithUser) {
     return this.authService.profile(req.user.id);
+  }
+
+  @Get('login-token')
+  loginToken() {
+    return this.authService.loginToken();
   }
 }
