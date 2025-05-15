@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateSettingDto } from './dto/create-setting.dto';
@@ -13,7 +17,9 @@ export class SettingService {
   ) {}
 
   async create(createSettingDto: CreateSettingDto) {
-    const setting = await this.settingRepository.findOne({ where: { name: createSettingDto.name } });
+    const setting = await this.settingRepository.findOne({
+      where: { name: createSettingDto.name },
+    });
     if (setting) {
       throw new BadRequestException('Setting already exists');
     }
@@ -40,7 +46,7 @@ export class SettingService {
   }
 
   update(name: string, updateSettingDto: UpdateSettingDto) {
-    return this.settingRepository.update(name, updateSettingDto);
+    return this.settingRepository.update({ name }, updateSettingDto);
   }
 
   remove(name: string) {
