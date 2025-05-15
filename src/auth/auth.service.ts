@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { compare, hash } from 'bcrypt';
 import { SettingService } from 'src/setting/setting.service';
+import { Role } from 'src/user/enums/role.enum';
 import { UserService } from 'src/user/user.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -15,11 +16,6 @@ export class AuthService {
   ) {}
 
   async login(loginDto: LoginDto) {
-    const loginPayload = this.jwtService.verify(loginDto.token);
-    if (loginPayload.type !== 'login-token') {
-      throw new UnauthorizedException('Invalid token');
-    }
-
     const user = await this.userService.findOneByEmail(loginDto.email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -28,6 +24,13 @@ export class AuthService {
     const isPasswordValid = await compare(loginDto.password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    if (user.role !== Role.ADMIN) {
+      const loginPayload = this.jwtService.verify(loginDto.token);
+      if (loginPayload.type !== 'login-token') {
+        throw new UnauthorizedException('Invalid token');
+      }
     }
 
     if (user.lastLogin) {
