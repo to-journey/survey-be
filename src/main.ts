@@ -9,7 +9,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new UnknownExceptionInterceptor());
 
   app.enableCors({
-    origin: ['http://localhost:5173'],
+    origin: ['http://localhost:5173', 'https://survey-fe-gamma.vercel.app'],
     methods: ['*'],
     credentials: true,
   });
